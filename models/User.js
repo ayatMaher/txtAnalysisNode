@@ -1,17 +1,34 @@
 const {dbConnection} = require('../conf')
-const {userValidator} = require('../validators')
+const {userValidator, loginValidator} = require('../validators')
+const {hashSync, compareSync} = require('bcryptjs') // hash (non-blocking) (async) , hashSync (blocking)(sync)
 
 class User {
     constructor(userData) {
         this.userData = userData;
     }
 
-    save() {
+    save(cb) {
         dbConnection('users', async (collection) => {
-            await collection.insertOne(this.userData)
+            try {
+                const hashedPassword = hashSync(this.userData.password)
+                this.userData.password = hashedPassword
+                await collection.insertOne(this.userData)
+                    .then(result => {
+                        cb({
+                            status: true,
+                            message: result.message
+                            // _user_id: result.insertedId
+                        })
+                    })
+            } catch (err) {
+                cb({
+                    status: false,
+                    message: err.message
+                })
+            }
         })
-
     }
+
 
     isExist() {
         return new Promise((resolve, reject) => {
@@ -29,12 +46,12 @@ class User {
                             check: false
                         })
                     } else {
-                        if (this.userData.email === user.email) {
+                        if (user.email === this.userData.email) {
                             resolve({
                                 check: true,
                                 message: 'This email is already used'
                             })
-                        } else if (this.userData.username === user.username) {
+                        } else if (user.username === this.userData.username) {
                             resolve({
                                 check: true,
                                 message: 'this username is already used'
@@ -48,52 +65,44 @@ class User {
         })
     }
 
+
     static validate(userData) {
-        const validation = userValidator.validate(userData);
-        return validation;
+        try {
+            return userValidator.validate(userData);
+        } catch (err) {
+            return false;
+        }
+
+    }
+
+    static logIn(logInData) {
+        return new Promise((resolve, reject) => {
+            // validation
+            const validation = loginValidator.validate(logInData)
+            if (validation.error) {
+                const error = new Error(validation.error.message)
+                error.statusCode = 400
+                resolve(error)
+            }
+            // find user
+            dbConnection('users', async (collection) => {
+                try {
+                    const user = await collection.findOne(
+                        {username: logInData.username},
+                        {projection: {username: 1}}
+                    )
+                    if (!user || !compareSync(logInData.password, user.password)) {
+                        const error = new Error('Wrong or not found username or password')
+                        error.statusCode = 401
+                        resolve(error)
+                    }
+                    resolve(user)
+                } catch (err) {
+                    reject(err)
+                }
+            })
+        })
     }
 }
-
-const user = new User({
-    name: 'salam',
-    email: 'salam@gmail.com',
-    username: 'salam',
-    password: '11111aaaaa'
-})
-
-// const mongoose = require('mongoose');
-// const userSchema = mongoose.Schema({
-//     name: String,
-//     email: String,
-//     passsword: String,
-//     dateOfBirth: Date
-// })
-//
-// // mongoose.set("strictQuery", false)
-// // mongoose.connect("mongodb+srv://asalman:hcb5FIYlqCYmpudb@cluster0.xfnfuqe.mongodb.net/TextAnalysis?retryWrites=true&w=majority")
-// //     .then(() => {
-// //         console.log("connected to mongodb")
-// //     }).catch((err) => {
-// //     console.log(err)
-// // })
-// const Schema = mongoose.Schema;
-// const userSchema = new Schema({
-//     name: String,
-//     email: String,
-//     passsword: String,
-//     dateOfBirth: Date
-// });
-// const User = mongoose.model('User', userSchema);
-
-User.validate(user.userData)
-user.save()
-user.isExist()
-    .then(result => {
-        console.log(result);
-    })
-    .catch(err => {
-        console.log(err)
-    })
-
 
 module.exports = User;

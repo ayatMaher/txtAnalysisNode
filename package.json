@@ -11,12 +11,18 @@
   "license": "ISC",
   "dependencies": {
     "@hapi/joi": "^17.1.1",
+    "bcryptjs": "^2.4.3",
     "bson": "^5.2.0",
+    "compromise": "^14.9.0",
+    "create-error": "^0.3.1",
     "express": "^4.18.2",
     "http-errors": "^2.0.0",
+    "lodash": "^4.17.21",
     "mongodb": "^5.4.0",
     "multer": "^1.4.5-lts.1",
     "natural": "^6.3.0",
-    "nodemon": "^2.0.22"
+    "nodemon": "^2.0.22",
+    "pos": "^0.4.2",
+    "talisman": "^1.1.4"
   }
 }

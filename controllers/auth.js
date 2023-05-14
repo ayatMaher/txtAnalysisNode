@@ -1,4 +1,4 @@
-const User = require("../models");
+const {User} = require("../models");
 const createError = require('http-errors')
 
 const signUp = (req, res, next) => {
@@ -8,85 +8,51 @@ const signUp = (req, res, next) => {
     const validation = User.validate(userData)
     if (validation.error) {
         const error = createError(400, validation.error.message)
+        console.log("ayat",error)
         next(error)
     }
-    // check existance
+    // check existence
     const user = new User(userData);
     user.isExist()
         .then(result => {
             if (result.check) {
-                next(createError(409, result.message))
+                const error = createError(409, result.message)
+                next(error)
             }
         })
         .catch(err => {
-            next(createError(500, err.message))
+            const error = createError(500, err.message)
+            next(error)
+        })
+    // save (insert user)
+    user.save((status) => {
+        if (status.status) {
+            // const _user_id = status._user_id
+            res.status(201).json({
+                status: true,
+                message: "User has been created successfully"
+            })
+        } else {
+            const error = createError(500, status.message)
+            console.log("ayat1"+error)
+            next(error)
+        }
+    });
+}
+const logIn = (req, res, next) => {
+    User.logIn(req.body)
+        .then(result => {
+            if (result instanceof Error) {
+                const error = createError(result.statusCode, result.message)
+                next(error)
+            }
+            res.status(200).json(result)
+        })
+        .catch(err => {
+            const error = createError(err.statusCode, err.message)
+            next(error)
         })
 }
-// // pass handler
-// const bcrypt = require('bcrypt')
-// const signUp = async (req, res, next) => {
-//     let {name, email, password, dateOfBirth} = req.body;
-//     name = name.trim();
-//     email = email.trim();
-//     password = password.trim();
-//     dateOfBirth = dateOfBirth.trim();
-//     res.send("Welcome");
-//     if (name === "" || email === "" || password === "" || dateOfBirth === "") {
-//         res.json({
-//             status: 400,
-//             message: "Empty input Field!"
-//         });
-//     } else if (!/^[a-zA]*$/.test(name)) {
-//         res.json({
-//             status: 400,
-//             message: "Invalid name entered"
-//         });
-//     } else if (!/^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/.test(email)) {
-//         res.json({
-//             status: 400,
-//             message: "Invalid email entered"
-//         });
-//     } else if (!new Date(dateOfBirth).getTime()) {
-//         res.json({
-//             status: 400,
-//             message: "Invalid date of birth entered"
-//         });
-//     } else if (password.length < 8) {
-//         res.json({
-//             status: 400,
-//             message: "Password is too short!"
-//         });
-//     } else {
-//         // checking if user already exists
-//         User.find({email}).then(result => {
-//             if (result.length) {
-//                 // userer already exists
-//                 res.json({
-//                     status: 400,
-//                     message: "User with the provided email already exists"
-//                 })
-//             } else {
-//                 // try to create new user
-//                 //pass handling
-//                 try {
-//                     dbConnection('User',()=>{
-//
-//                     })
-//                     const user =  User.create(req.body)
-//                     res.status(200).json(user)
-//                 }catch (err){
-//                     res.status(500).json({message: err.message})
-//                 }
-//             }
-//         }).catch(err => {
-//             console.log(err);
-//             res.json({
-//                 status: 400,
-//                 message: "An error occurred while checking for existing user!"
-//             })
-//         })
-//     }
-// }
 module.exports = {
-    signUp
+    signUp, logIn
 }

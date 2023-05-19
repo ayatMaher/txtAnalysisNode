@@ -1,7 +1,6 @@
 {
   "name": "txtanalysisnodejs",
   "version": "1.0.0",
-  "description": "",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -12,10 +11,13 @@
   "dependencies": {
     "@hapi/joi": "^17.1.1",
     "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
     "bson": "^5.2.0",
     "compromise": "^14.9.0",
+    "cors": "^2.8.5",
     "create-error": "^0.3.1",
     "express": "^4.18.2",
+    "hbs": "^4.2.0",
     "http-errors": "^2.0.0",
     "lodash": "^4.17.21",
     "mongodb": "^5.4.0",
@@ -23,6 +25,9 @@
     "natural": "^6.3.0",
     "nodemon": "^2.0.22",
     "pos": "^0.4.2",
-    "talisman": "^1.1.4"
-  }
+    "talisman": "^1.1.4",
+    "vue": "^3.3.4"
+  },
+  "devDependencies": {},
+  "description": ""
 }

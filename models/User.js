@@ -32,8 +32,8 @@ class User {
 
     isExist() {
         return new Promise((resolve, reject) => {
-            try {
-                dbConnection('users', async (collection) => {
+            dbConnection('users', async (collection) => {
+                try {
                     const user = await collection.findOne({
                         '$or': [
                             {username: this.userData.username},
@@ -42,26 +42,27 @@ class User {
                     })
 
                     if (!user) {
-                        resolve({
+                        return resolve({
                             check: false
                         })
                     } else {
                         if (user.email === this.userData.email) {
-                            resolve({
+                            return resolve({
                                 check: true,
                                 message: 'This email is already used'
                             })
                         } else if (user.username === this.userData.username) {
-                            resolve({
+                            return resolve({
                                 check: true,
                                 message: 'this username is already used'
                             })
                         }
                     }
-                })
-            } catch (err) {
-                reject(err)
-            }
+
+                } catch (err) {
+                    return reject(err)
+                }
+            })
         })
     }
 
@@ -82,23 +83,25 @@ class User {
             if (validation.error) {
                 const error = new Error(validation.error.message)
                 error.statusCode = 400
-                resolve(error)
+                return resolve(error)
             }
             // find user
             dbConnection('users', async (collection) => {
                 try {
                     const user = await collection.findOne(
                         {username: logInData.username},
-                        {projection: {username: 1}}
+                        {projection: {username: 1, password: 1}}
                     )
                     if (!user || !compareSync(logInData.password, user.password)) {
                         const error = new Error('Wrong or not found username or password')
                         error.statusCode = 401
-                        resolve(error)
+                        return resolve(error)
+
+
                     }
-                    resolve(user)
+                    return resolve(user)
                 } catch (err) {
-                    reject(err)
+                    return reject(err)
                 }
             })
         })

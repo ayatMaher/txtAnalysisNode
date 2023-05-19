@@ -4,7 +4,6 @@ const schema = Joi.object({
     name: Joi.string().required(),
     email: Joi.string().email().required(),
     username: Joi.string().alphanum().required().min(3).max(10),
-    dateOfBirth: Joi.date().max('now').iso().required(),
     password: Joi.string()
         .pattern(new RegExp('^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])[0-9a-zA-Z]{8,}$'))
         .message('Password must be >= 8 digits and contains lower, upper and number digits')
